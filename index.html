@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>台股當沖計算機｜跳動檔數損益試算（做多做空/手續費/證交稅/ETF）</title>
+  <meta name="description" content="台股當沖計算機：輸入開倉價格、交易數量，選擇做多/做空與個股/ETF，立即看到上下跳動檔位的損益試算，包含手續費與證交稅。" />
+  <link rel="canonical" href="https://YOURDOMAIN.COM/tw/daytrade-calculator/" />
+
+  <!-- ✅ AdSense：把 ca-pub 換成你的 Publisher ID -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#2563eb;
+
+      --pos:#dc2626;
+      --neg:#16a34a;
+
+      --warn:#f59e0b;
+      --radius:14px;
+      --shadow: 0 10px 30px rgba(17,24,39,.06);
+
+      --rowHi: rgba(245,158,11,.18);
+      --rowHiLine: rgba(245,158,11,.55);
+
+      --stripe:#fbfbfc;
+      --hover:#f6f7fb;
+
+      --adBg:#f3f4f6;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial;
+      background: var(--bg);
+      color: var(--text);
+      line-height:1.6;
+    }
+
+    header{
+      max-width:1200px;margin:0 auto;padding:12px 16px 6px;
+    }
+    .titleRow{
+      display:flex;
+      align-items:baseline;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{margin:0;font-size:26px;letter-spacing:.2px;line-height:1.2;}
+    .titleHint{margin:0;font-size:13px;color:var(--muted);line-height:1.4;}
+
+    main{max-width:1200px;margin:0 auto;padding:8px 16px 20px;}
+
+    /* ====== AdSense Slot Containers (預留高度避免 CLS) ====== */
+    .ad-slot{
+      background: var(--adBg);
+      border:1px dashed #d1d5db;
+      border-radius:14px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+    }
+    .ad-slot .ad-inner{
+      width:100%;
+    }
+
+    /* Top：桌機/平板較高，手機稍矮 */
+    #ad-top{
+      min-height:140px;
+      margin:10px 0 14px;
+    }
+    @media (max-width:520px){
+      #ad-top{ min-height:110px; }
+    }
+
+    /* Right sticky：桌機才顯示，固定高度 600 */
+    #ad-right{
+      display:none;
+      min-height:600px;
+      position: sticky;
+      top: 14px;
+    }
+    @media (min-width:1100px){
+      #ad-right{ display:flex; }
+    }
+
+    /* Mobile bottom：手機顯示 */
+    #ad-mobile{
+      display:flex;
+      min-height:100px;
+      margin-top:14px;
+    }
+    @media (min-width:980px){
+      #ad-mobile{ display:none; }
+    }
+
+    /* ====== Layout ====== */
+    .layout{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){ .layout{grid-template-columns:1fr} }
+
+    .rightArea{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    @media (min-width: 1100px){
+      .rightArea{
+        grid-template-columns: 1fr 320px;
+        align-items:start;
+      }
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{margin:0;font-size:14px;letter-spacing:.2px}
+    .sectionTitle{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+    .dot{width:8px;height:8px;border-radius:999px;background:rgba(37,99,235,.75);}
+
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select, button{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(37,99,235,.45);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.10);
+    }
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width:520px){ .row{grid-template-columns:1fr} }
+
+    .hint{font-size:12px; color:var(--muted); margin-top:6px}
+    .actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
+    button{
+      cursor:pointer;
+      border:1px solid rgba(37,99,235,.35);
+      background: rgba(37,99,235,.08);
+      font-weight:800;
+    }
+    button:hover{background: rgba(37,99,235,.12);}
+    button.secondary{border:1px solid var(--line); background:#fff; font-weight:800;}
+    button.secondary:hover{background:#f9fafb;}
+
+    .tiny{ font-size:11px; color:var(--muted); }
+    .selectHelp{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.3}
+
+    .resultCard{ text-align:center; }
+
+    .tableWrap{
+      margin-top:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+    table{ width:100%; border-collapse:collapse; }
+    thead th{
+      background:#f9fafb;
+      color:var(--muted);
+      font-weight:900;
+      font-size:12px;
+      padding:12px 10px;
+      border-bottom:1px solid var(--line);
+      text-align:center;
+      white-space:nowrap;
+    }
+    tbody td{
+      padding:12px 10px;
+      border-bottom:1px solid var(--line);
+      text-align:center;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    tbody tr:nth-child(even){ background: var(--stripe); }
+    tbody tr:hover{ background: var(--hover); }
+    tbody tr:last-child td{ border-bottom:none; }
+
+    .pos{color:var(--pos)}
+    .neg{color:var(--neg)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+
+    .centerHi{
+      background: var(--rowHi) !important;
+      outline:2px solid var(--rowHiLine);
+      outline-offset:-2px;
+    }
+    .showMoreRow{
+      text-align:center !important;
+      color: var(--accent);
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      background:#fff !important;
+    }
+    .showMoreRow:hover{background:#f3f6ff !important;}
+
+    .note{
+      border-left:4px solid rgba(245,158,11,.95);
+      padding:10px 12px;
+      background: rgba(245,158,11,.08);
+      border-radius:12px;
+      color:#7c4a03;
+      margin-top:12px;
+      font-size:13px;
+      text-align:left;
+    }
+
+    details{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff;
+      margin-top:10px;
+    }
+    summary{cursor:pointer; font-weight:900; font-size:13px}
+
+    /* ====== Footer ====== */
+    .siteFooter{
+      margin-top:18px;
+      border-top:1px solid var(--line);
+      background:#fff;
+    }
+    .footerInner{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .footerBrand{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:13px;
+      color:var(--text);
+    }
+    .footerMeta{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.4;
+      margin-top:2px;
+    }
+    .footerLinks{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+    }
+    .footerLinks a{
+      font-size:12px;
+      color:var(--muted);
+      text-decoration:none;
+      border-bottom:1px dashed transparent;
+    }
+    .footerLinks a:hover{
+      color:var(--text);
+      border-bottom-color:rgba(17,24,39,.25);
+    }
+    .footerRight{
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="titleRow">
+    <h1>台股當沖計算機</h1>
+    <p class="titleHint">輸入開倉價格與張數，選擇做多/做空與費率，右側顯示上下跳動檔位的損益試算。</p>
+  </div>
+
+  <!-- ✅ Top AdSense (Responsive) -->
+  <div class="ad-slot" id="ad-top" aria-label="Top Ad">
+    <div class="ad-inner">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+        data-ad-slot="1234567890"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="layout">
+    <!-- Left -->
+    <section class="card" aria-labelledby="calcTitle">
+      <div class="sectionTitle"><span class="dot"></span><h2 id="calcTitle">參數設定</h2></div>
+
+      <div class="row">
+        <div>
+          <label for="product">商品類型</label>
+          <select id="product">
+            <option value="stock">個股（證交稅 0.15%）</option>
+            <option value="etf">ETF（證交稅 0.1%）</option>
+          </select>
+          <div class="selectHelp"><span class="tiny">括號內為常見稅率提示，實際以公告/券商為準。</span></div>
+        </div>
+        <div>
+          <label for="side">方向</label>
+          <select id="side">
+            <option value="long">做多</option>
+            <option value="short">做空</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="entry">開倉價格（元）</label>
+      <input id="entry" inputmode="decimal" placeholder="例如 100" />
+
+      <label for="lots">交易數量（張）</label>
+      <input id="lots" inputmode="numeric" placeholder="例如 1（=1000股）" />
+
+      <div class="actions">
+        <button id="btnCalc">立即計算</button>
+        <button class="secondary" id="btnReset" type="button">重設</button>
+      </div>
+
+      <details open>
+        <summary>手續費設定</summary>
+        <div class="row" style="margin-top:8px">
+          <div>
+            <label for="discount">折數（例如 2.8 折）</label>
+            <input id="discount" inputmode="decimal" value="2.8" />
+            <div class="hint">2.8 折 = 0.28 倍</div>
+          </div>
+          <div>
+            <label for="minFee">最低手續費（每邊，元）</label>
+            <input id="minFee" inputmode="numeric" value="20" />
+          </div>
+        </div>
+        <label for="commissionRate">手續費率（%）</label>
+        <input id="commissionRate" inputmode="decimal" value="0.1425" />
+        <div class="hint">預設 0.1425%（買賣各收一次，並套用折數、最低門檻）</div>
+      </details>
+
+      <div class="note" id="rateNote">
+        提醒：本工具為估算用途，實際費用/稅率/最低門檻以券商成交單與公告為準。
+      </div>
+
+      <!-- ✅ Mobile AdSense (Responsive) -->
+      <div class="ad-slot" id="ad-mobile" aria-label="Mobile Ad">
+        <div class="ad-inner">
+          <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+            data-ad-slot="2345678901"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right -->
+    <div class="rightArea">
+      <section class="card resultCard" aria-labelledby="resultTitle">
+        <div class="sectionTitle" style="justify-content:center">
+          <span class="dot"></span><h2 id="resultTitle">跳動損益試算</h2>
+        </div>
+
+        <div class="tableWrap">
+          <table aria-label="跳動損益表">
+            <thead>
+              <tr>
+                <th>買入價格</th>
+                <th>賣出價格</th>
+                <th>證交稅</th>
+                <th>總手續費</th>
+                <th>獲利</th>
+                <th>報酬率</th>
+              </tr>
+            </thead>
+            <tbody id="ladderBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--muted)">請先輸入左側參數並按「立即計算」。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details style="margin-top:10px; text-align:left;">
+          <summary>股價跳動單位（tick）</summary>
+          <div class="hint" style="margin-top:8px">
+            常見級距：&lt;10：0.01｜10–&lt;50：0.05｜50–&lt;100：0.1｜100–&lt;500：0.5｜500–&lt;1000：1｜≥1000：5
+          </div>
+        </details>
+      </section>
+
+      <!-- ✅ Right Sticky AdSense (Desktop only) -->
+      <aside class="ad-slot" id="ad-right" aria-label="Right Ad">
+        <div class="ad-inner">
+          <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+            data-ad-slot="3456789012"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<!-- ✅ Footer：三頁連結完整 -->
+<footer class="siteFooter" aria-label="網站頁尾">
+  <div class="footerInner">
+    <div class="footerLeft">
+      <div class="footerBrand">台股當沖計算機</div>
+      <div class="footerMeta">本工具為估算用途，實際費用以券商成交單為準。</div>
+    </div>
+
+    <nav class="footerLinks" aria-label="頁尾連結">
+      <a href="./privacy.html">隱私權政策</a>
+      <a href="./terms.html">使用條款</a>
+      <a href="./about.html">關於我們</a>
+    </nav>
+
+    <div class="footerRight">
+      © <span id="footerYear"></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("footerYear").textContent = new Date().getFullYear();
+</script>
+
+<script>
+  // AdSense 初始化：每個 ins 都 push 一次
+  window.addEventListener("load", () => {
+    try{
+      document.querySelectorAll("ins.adsbygoogle").forEach(() => {
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      });
+    }catch(e){}
+  });
+</script>
+
+<script>
+(() => {
+  const $ = (id)=>document.getElementById(id);
+
+  function formatPriceFromCents(c){
+    const sign = c < 0 ? "-" : "";
+    c = Math.abs(c);
+    const intPart = Math.floor(c / 100);
+    const frac = c % 100;
+    if(frac === 0) return sign + String(intPart);
+    if(frac % 10 === 0) return sign + `${intPart}.${Math.floor(frac/10)}`;
+    return sign + `${intPart}.${String(frac).padStart(2,"0")}`;
+  }
+  function parseNum(v){
+    const x = Number(String(v).replace(/,/g,'').trim());
+    return Number.isFinite(x) ? x : NaN;
+  }
+  function fmt0(n){
+    if(!Number.isFinite(n)) return "—";
+    return n.toLocaleString("zh-TW", {maximumFractionDigits: 0});
+  }
+  function fmt2(n){
+    if(!Number.isFinite(n)) return "—";
+    return n.toLocaleString("zh-TW", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function toCents(price){ return Math.round(price * 100); }
+  function fromCents(cents){ return cents / 100; }
+
+  function tickSizeCents(priceCents){
+    if(priceCents < 1000) return 1;
+    if(priceCents < 5000) return 5;
+    if(priceCents < 10000) return 10;
+    if(priceCents < 50000) return 50;
+    if(priceCents < 100000) return 100;
+    return 500;
+  }
+  function nextTickCents(priceCents){ return priceCents + tickSizeCents(priceCents); }
+  function prevTickCents(priceCents){
+    const ref = priceCents - 1;
+    return priceCents - tickSizeCents(ref);
+  }
+
+  function getTaxRate(product){ return product === "etf" ? 0.1 : 0.15; }
+
+  function computePNL({product, entry, exit, lots, discount, minFee, commissionRatePct}){
+    const shares = lots * 1000;
+    const entryAmt = entry * shares;
+    const exitAmt  = exit  * shares;
+
+    const commissionRate = (commissionRatePct / 100);
+    const discountMul = discount / 10;
+
+    const feeIn  = Math.max(minFee, Math.floor(entryAmt * commissionRate * discountMul));
+    const feeOut = Math.max(minFee, Math.floor(exitAmt  * commissionRate * discountMul));
+    const totalFee = feeIn + feeOut;
+
+    const tax = Math.floor(exitAmt * (getTaxRate(product)/100));
+
+    const grossPnL = (exit - entry) * shares;
+    const netPnL = grossPnL - totalFee - tax;
+    const roi = (netPnL / entryAmt) * 100;
+
+    return { tax, totalFee, netPnL, roi };
+  }
+
+  const snapshot = {
+    has:false,
+    product:"stock",
+    side:"long",
+    entry:0,
+    lots:0,
+    discount:2.8,
+    minFee:20,
+    commissionRatePct:0.1425,
+    upN:5,
+    downN:5
+  };
+
+  function readForm(){
+    const product = $("product").value;
+    const side = $("side").value;
+    const entry = parseNum($("entry").value);
+    const lots  = parseNum($("lots").value);
+    const discount = parseNum($("discount").value);
+    const minFee = parseNum($("minFee").value);
+    const commissionRatePct = parseNum($("commissionRate").value);
+
+    if([entry, lots, discount, minFee, commissionRatePct].some(x=>!Number.isFinite(x)) || entry<=0 || lots<=0 || discount<=0){
+      return { ok:false, msg:"請確認輸入正確（價格/張數/折數需為正）。" };
+    }
+    return { ok:true, product, side, entry, lots, discount, minFee, commissionRatePct };
+  }
+
+  function buildUps(centerCents, n){
+    const ups = [];
+    let p = centerCents;
+    for(let i=1;i<=n;i++){ p = nextTickCents(p); ups.push(p); }
+    ups.reverse();
+    return ups;
+  }
+  function buildDowns(centerCents, n){
+    const downs = [];
+    let p = centerCents;
+    for(let i=1;i<=n;i++){ p = prevTickCents(p); downs.push(p); }
+    return downs;
+  }
+
+  function render(){
+    const body = $("ladderBody");
+    if(!snapshot.has){
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">請先輸入左側參數並按「立即計算」。</td></tr>`;
+      return;
+    }
+
+    const entryC = toCents(snapshot.entry);
+    const ups = buildUps(entryC, snapshot.upN);
+    const downs = buildDowns(entryC, snapshot.downN);
+
+    function mkRow(buyC, sellC, isCenter){
+      const buyP = fromCents(buyC);
+      const sellP = fromCents(sellC);
+
+      const r = computePNL({
+        product: snapshot.product,
+        entry: buyP,
+        exit: sellP,
+        lots: snapshot.lots,
+        discount: snapshot.discount,
+        minFee: snapshot.minFee,
+        commissionRatePct: snapshot.commissionRatePct
+      });
+
+      const cls = r.netPnL >= 0 ? "pos" : "neg";
+      const sign = r.netPnL >= 0 ? "+" : "";
+      const rcls = r.roi >= 0 ? "pos" : "neg";
+      const rsign = r.roi >= 0 ? "+" : "";
+
+      return `
+        <tr class="${isCenter ? "centerHi" : ""}">
+          <td class="mono">${formatPriceFromCents(buyC)}</td>
+          <td class="mono">${formatPriceFromCents(sellC)}</td>
+          <td class="mono">${fmt0(r.tax)}</td>
+          <td class="mono">${fmt0(r.totalFee)}</td>
+          <td class="mono ${cls}">${sign}${fmt0(r.netPnL)}</td>
+          <td class="mono ${rcls}">${rsign}${fmt2(r.roi)}%</td>
+        </tr>
+      `;
+    }
+
+    const moreUp = `<tr><td colspan="6" class="showMoreRow" id="moreUp">+ 顯示更多（僅往上 +10 檔）</td></tr>`;
+    const moreDown = `<tr><td colspan="6" class="showMoreRow" id="moreDown">+ 顯示更多（僅往下 +10 檔）</td></tr>`;
+
+    let html = moreUp;
+
+    if(snapshot.side === "long"){
+      const buyC = entryC;
+      ups.forEach(sellC => html += mkRow(buyC, sellC, false));
+      html += mkRow(buyC, entryC, true);
+      downs.forEach(sellC => html += mkRow(buyC, sellC, false));
+    }else{
+      const sellC = entryC;
+      ups.forEach(buyC => html += mkRow(buyC, sellC, false));
+      html += mkRow(entryC, sellC, true);
+      downs.forEach(buyC => html += mkRow(buyC, sellC, false));
+    }
+
+    html += moreDown;
+    body.innerHTML = html;
+
+    const btnUp = document.getElementById("moreUp");
+    const btnDown = document.getElementById("moreDown");
+    if(btnUp) btnUp.onclick = () => { snapshot.upN += 10; render(); };
+    if(btnDown) btnDown.onclick = () => { snapshot.downN += 10; render(); };
+  }
+
+  function calc(){
+    const form = readForm();
+    if(!form.ok){ alert(form.msg); return; }
+    snapshot.has = true;
+    snapshot.product = form.product;
+    snapshot.side = form.side;
+    snapshot.entry = form.entry;
+    snapshot.lots = form.lots;
+    snapshot.discount = form.discount;
+    snapshot.minFee = form.minFee;
+    snapshot.commissionRatePct = form.commissionRatePct;
+    snapshot.upN = 5; snapshot.downN = 5;
+    render();
+  }
+
+  function reset(){
+    $("product").value = "stock";
+    $("side").value = "long";
+    $("entry").value = "";
+    $("lots").value = "";
+    $("discount").value = "2.8";
+    $("minFee").value = "20";
+    $("commissionRate").value = "0.1425";
+    snapshot.has = false;
+    snapshot.upN = 5; snapshot.downN = 5;
+    render();
+  }
+
+  $("btnCalc").addEventListener("click", calc);
+  $("btnReset").addEventListener("click", reset);
+
+  ["entry","lots","product","side","discount","minFee","commissionRate"].forEach(id=>{
+    $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter") calc(); });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
+
+
