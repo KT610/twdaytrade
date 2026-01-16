@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>台股當沖計算機｜跳動檔數損益試算（做多做空/手續費/證交稅/ETF）</title>
   <meta name="description" content="台股當沖計算機：輸入開倉價格、交易數量，選擇做多/做空與個股/ETF，立即看到上下跳動檔位的損益試算，包含手續費與證交稅。" />
-  <link rel="canonical" href="https://YOURDOMAIN.COM/tw/daytrade-calculator/" />
+  <link rel="canonical" href="https://twdaytrade.pages.dev/" />
 
-  <!-- ✅ AdSense：把 ca-pub 換成你的 Publisher ID -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXX"
-    crossorigin="anonymous"></script>
+  <!-- ✅ Google AdSense (Site-wide code) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6492672168172091"
+     crossorigin="anonymous"></script>
 
   <style>
     :root{
@@ -69,15 +69,10 @@
       justify-content:center;
       padding:10px;
     }
-    .ad-slot .ad-inner{
-      width:100%;
-    }
+    .ad-slot .ad-inner{ width:100%; }
 
     /* Top：桌機/平板較高，手機稍矮 */
-    #ad-top{
-      min-height:140px;
-      margin:10px 0 14px;
-    }
+    #ad-top{ min-height:140px; margin:10px 0 14px; }
     @media (max-width:520px){
       #ad-top{ min-height:110px; }
     }
@@ -301,7 +296,7 @@
     <div class="ad-inner">
       <ins class="adsbygoogle"
         style="display:block"
-        data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+        data-ad-client="ca-pub-6492672168172091"
         data-ad-slot="1234567890"
         data-ad-format="auto"
         data-full-width-responsive="true"></ins>
@@ -344,6 +339,7 @@
         <button class="secondary" id="btnReset" type="button">重設</button>
       </div>
 
+      <!-- 手續費設定移到按鈕下方，且預設展開 -->
       <details open>
         <summary>手續費設定</summary>
         <div class="row" style="margin-top:8px">
@@ -362,7 +358,7 @@
         <div class="hint">預設 0.1425%（買賣各收一次，並套用折數、最低門檻）</div>
       </details>
 
-      <div class="note" id="rateNote">
+      <div class="note">
         提醒：本工具為估算用途，實際費用/稅率/最低門檻以券商成交單與公告為準。
       </div>
 
@@ -371,7 +367,7 @@
         <div class="ad-inner">
           <ins class="adsbygoogle"
             style="display:block"
-            data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+            data-ad-client="ca-pub-6492672168172091"
             data-ad-slot="2345678901"
             data-ad-format="auto"
             data-full-width-responsive="true"></ins>
@@ -417,7 +413,7 @@
         <div class="ad-inner">
           <ins class="adsbygoogle"
             style="display:block"
-            data-ad-client="ca-pub-XXXXXXXXXXXXXXX"
+            data-ad-client="ca-pub-6492672168172091"
             data-ad-slot="3456789012"
             data-ad-format="auto"
             data-full-width-responsive="true"></ins>
@@ -492,12 +488,12 @@
   function fromCents(cents){ return cents / 100; }
 
   function tickSizeCents(priceCents){
-    if(priceCents < 1000) return 1;
-    if(priceCents < 5000) return 5;
-    if(priceCents < 10000) return 10;
-    if(priceCents < 50000) return 50;
-    if(priceCents < 100000) return 100;
-    return 500;
+    if(priceCents < 1000) return 1;      // <10 => 0.01
+    if(priceCents < 5000) return 5;      // 10~50 => 0.05
+    if(priceCents < 10000) return 10;    // 50~100 => 0.1
+    if(priceCents < 50000) return 50;    // 100~500 => 0.5
+    if(priceCents < 100000) return 100;  // 500~1000 => 1
+    return 500;                          // >=1000 => 5
   }
   function nextTickCents(priceCents){ return priceCents + tickSizeCents(priceCents); }
   function prevTickCents(priceCents){
@@ -528,6 +524,7 @@
     return { tax, totalFee, netPnL, roi };
   }
 
+  // Snapshot：只有按「立即計算」才更新右側
   const snapshot = {
     has:false,
     product:"stock",
@@ -669,6 +666,7 @@
   $("btnCalc").addEventListener("click", calc);
   $("btnReset").addEventListener("click", reset);
 
+  // Enter 快捷鍵：只有按 Enter 才計算（不會自動跟著 input 變）
   ["entry","lots","product","side","discount","minFee","commissionRate"].forEach(id=>{
     $(id).addEventListener("keydown", (e)=>{ if(e.key==="Enter") calc(); });
   });
@@ -678,5 +676,3 @@
 </script>
 </body>
 </html>
-
-
