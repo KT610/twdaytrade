@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>台股當沖計算機｜跳動檔數損益試算（做多做空/手續費/證交稅/ETF）</title>
-  <meta name="description" content="台股當沖計算機：輸入開倉價格、交易數量，選擇做多/做空與個股/ETF，立即看到上下跳動檔位的損益試算，包含手續費與證交稅。" />
+  <title>台股當沖計算機｜跳動檔數損益試算（做多做空/手續費/證交稅）</title>
+  <meta name="description" content="台股當沖計算機：輸入開倉價格、交易張數，選擇做多/做空與個股/ETF，立即看到上下跳動檔位的損益試算，含手續費與證交稅估算。" />
   <link rel="canonical" href="https://twdaytrade.pages.dev/" />
 
   <!-- ✅ Google AdSense (Site-wide code) -->
@@ -20,8 +20,8 @@
       --line:#e5e7eb;
       --accent:#2563eb;
 
-      --pos:#dc2626;
-      --neg:#16a34a;
+      --pos:#dc2626; /* 正報酬（示意採紅） */
+      --neg:#16a34a; /* 負報酬（示意採綠） */
 
       --warn:#f59e0b;
       --radius:14px;
@@ -41,7 +41,7 @@
       font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial;
       background: var(--bg);
       color: var(--text);
-      line-height:1.6;
+      line-height:1.65;
     }
 
     header{
@@ -71,32 +71,23 @@
     }
     .ad-slot .ad-inner{ width:100%; }
 
-    /* Top：桌機/平板較高，手機稍矮 */
     #ad-top{ min-height:140px; margin:10px 0 14px; }
-    @media (max-width:520px){
-      #ad-top{ min-height:110px; }
-    }
+    @media (max-width:520px){ #ad-top{ min-height:110px; } }
 
-    /* Right sticky：桌機才顯示，固定高度 600 */
     #ad-right{
       display:none;
       min-height:600px;
       position: sticky;
       top: 14px;
     }
-    @media (min-width:1100px){
-      #ad-right{ display:flex; }
-    }
+    @media (min-width:1100px){ #ad-right{ display:flex; } }
 
-    /* Mobile bottom：手機顯示 */
     #ad-mobile{
       display:flex;
       min-height:100px;
       margin-top:14px;
     }
-    @media (min-width:980px){
-      #ad-mobile{ display:none; }
-    }
+    @media (min-width:980px){ #ad-mobile{ display:none; } }
 
     /* ====== Layout ====== */
     .layout{
@@ -232,6 +223,59 @@
     }
     summary{cursor:pointer; font-weight:900; font-size:13px}
 
+    /* ====== SEO / Content section ====== */
+    .contentGrid{
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:14px;
+      margin-top:14px;
+      align-items:start;
+    }
+    @media (max-width:1100px){ .contentGrid{ grid-template-columns:1fr; } }
+
+    .contentCard h2{
+      font-size:16px;
+      margin:0 0 8px;
+      letter-spacing:.2px;
+    }
+    .contentCard h3{
+      font-size:14px;
+      margin:14px 0 6px;
+    }
+    .contentCard p, .contentCard li{
+      font-size:14px;
+      color: var(--text);
+    }
+    .contentCard ul{ padding-left:18px; margin:6px 0 0; }
+    .mutedP{ color: var(--muted); font-size:13px; }
+    .kbadge{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:12px;
+      color: #0f172a;
+      background: rgba(37,99,235,.10);
+      border: 1px solid rgba(37,99,235,.18);
+      margin-right:6px;
+    }
+    .toc{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
+    }
+    .tocTitle{font-weight:900; font-size:13px; margin:0 0 6px;}
+    .toc a{
+      display:block;
+      color: var(--accent);
+      text-decoration:none;
+      font-size:13px;
+      padding:6px 0;
+      border-bottom:1px dashed rgba(229,231,235,.9);
+    }
+    .toc a:last-child{ border-bottom:none; }
+    .toc a:hover{ text-decoration:underline; }
+
     /* ====== Footer ====== */
     .siteFooter{
       margin-top:18px;
@@ -248,39 +292,14 @@
       gap:12px;
       flex-wrap:wrap;
     }
-    .footerBrand{
-      font-weight:900;
-      letter-spacing:.2px;
-      font-size:13px;
-      color:var(--text);
-    }
-    .footerMeta{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.4;
-      margin-top:2px;
-    }
-    .footerLinks{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:center;
-    }
+    .footerBrand{ font-weight:900; letter-spacing:.2px; font-size:13px; color:var(--text); }
+    .footerMeta{ font-size:12px; color:var(--muted); line-height:1.4; margin-top:2px; }
+    .footerLinks{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center; }
     .footerLinks a{
-      font-size:12px;
-      color:var(--muted);
-      text-decoration:none;
-      border-bottom:1px dashed transparent;
+      font-size:12px; color:var(--muted); text-decoration:none; border-bottom:1px dashed transparent;
     }
-    .footerLinks a:hover{
-      color:var(--text);
-      border-bottom-color:rgba(17,24,39,.25);
-    }
-    .footerRight{
-      font-size:12px;
-      color:var(--muted);
-    }
+    .footerLinks a:hover{ color:var(--text); border-bottom-color:rgba(17,24,39,.25); }
+    .footerRight{ font-size:12px; color:var(--muted); }
   </style>
 </head>
 
@@ -339,7 +358,7 @@
         <button class="secondary" id="btnReset" type="button">重設</button>
       </div>
 
-      <!-- 手續費設定移到按鈕下方，且預設展開 -->
+      <!-- 手續費設定：預設展開、放在按鈕下方 -->
       <details open>
         <summary>手續費設定</summary>
         <div class="row" style="margin-top:8px">
@@ -355,11 +374,11 @@
         </div>
         <label for="commissionRate">手續費率（%）</label>
         <input id="commissionRate" inputmode="decimal" value="0.1425" />
-        <div class="hint">預設 0.1425%（買賣各收一次，並套用折數、最低門檻）</div>
+        <div class="hint">預設 0.1425%（買賣各一次，套用折數與最低門檻）</div>
       </details>
 
       <div class="note">
-        提醒：本工具為估算用途，實際費用/稅率/最低門檻以券商成交單與公告為準。
+        <b>免責聲明：</b>本工具僅供試算參考，不構成投資建議；實際稅費與手續費以券商成交單與交易所公告為準。
       </div>
 
       <!-- ✅ Mobile AdSense (Responsive) -->
@@ -421,6 +440,98 @@
       </aside>
     </div>
   </div>
+
+  <!-- ✅ 原創內容區（可見內容：解決 AdSense「沒有發布商內容」） -->
+  <section class="contentGrid" aria-label="台股當沖教學與常見問題">
+    <article class="card contentCard">
+      <h2 id="guide">台股當沖損益怎麼算？手續費、證交稅與 tick 跳動一次搞懂</h2>
+      <p class="mutedP">
+        <span class="kbadge">當沖試算</span>
+        <span class="kbadge">手續費</span>
+        <span class="kbadge">證交稅</span>
+        <span class="kbadge">tick 跳動</span>
+        這個頁面提供「台股當沖計算機」與教學說明：你輸入開倉價格與張數、選擇做多/做空與費率後，
+        右側會列出「上下跳動檔位」的損益試算，並把手續費與證交稅納入估算，方便你快速判斷每跳一檔可能賺/賠多少。
+      </p>
+
+      <h3 id="what">1）台股當沖成本包含哪些？</h3>
+      <p>
+        一般的現股當沖，常見成本主要有兩大類：<b>手續費</b>與<b>證交稅</b>。
+        手續費通常是「買入一次 + 賣出一次」各收一筆，常見算法是：成交金額 × 手續費率（例如 0.1425%）× 折數，
+        並可能有每筆最低手續費門檻（常見 20 元）。證交稅則依商品類型不同：
+        個股常見 0.15%，ETF 常見 0.1%（此處為常見情境提示，實務以公告與券商為準）。
+      </p>
+
+      <h3 id="fee">2）手續費怎麼算？為什麼會「不線性」？</h3>
+      <p>
+        手續費多數與成交金額成比例，但因為存在「最低手續費」門檻，所以在小額成交時會出現不線性的狀況。
+        例如：若成交金額 × 0.1425% × 折數算出來只有 8 元，但券商最低手續費為 20 元，
+        則實際會以 20 元計。當你的成交金額落在門檻附近時，價格每跳動一點點，費用可能仍然保持 20 元不變，
+        也可能跨過門檻後開始跟著成交金額增加，這就是為什麼你會看到每一檔的「總費用」不一定等距。
+      </p>
+
+      <h3 id="tax">3）證交稅怎麼算？個股與 ETF 有什麼差？</h3>
+      <p>
+        證交稅通常以「賣出成交金額」乘上稅率計算，因此當你的平倉價不同，每一檔位的賣出金額會改變，
+        證交稅也會跟著小幅波動。個股與 ETF 的稅率常見不同，因此同樣的價格跳動幅度，ETF 的稅負可能略低，
+        但仍需搭配手續費門檻與折數一起看，才能更接近真實交易成本。
+      </p>
+
+      <h3 id="longshort">4）做多 vs 做空：損益方向怎麼看？</h3>
+      <p>
+        做多（先買後賣）時，平倉價高於開倉價通常是獲利；做空（先賣後買）則相反，平倉價越低通常越有利。
+        本頁右側的試算表會依你選擇的方向自動切換：做多時固定買入價、變動賣出價；做空時固定賣出價、變動買回價。
+        無論做多或做空，系統都會把雙邊手續費與賣出端證交稅納入估算，讓你在不同檔位更直覺比較。
+      </p>
+
+      <h3 id="tick">5）台股 tick 跳動規則（10 / 50 / 100 / 500 / 1000 關卡）</h3>
+      <p>
+        台股股價有「跳動單位」規則，不同股價區間 tick 大小不同，常見級距如下：
+      </p>
+      <ul>
+        <li><b>&lt; 10 元</b>：每跳 0.01 元</li>
+        <li><b>10 ～ &lt; 50 元</b>：每跳 0.05 元</li>
+        <li><b>50 ～ &lt; 100 元</b>：每跳 0.1 元</li>
+        <li><b>100 ～ &lt; 500 元</b>：每跳 0.5 元</li>
+        <li><b>500 ～ &lt; 1000 元</b>：每跳 1 元</li>
+        <li><b>≥ 1000 元</b>：每跳 5 元</li>
+      </ul>
+      <p>
+        例如：100 元附近往上跳動是 0.5 元一檔；往下也會依規則逐檔遞減（本工具已修正上下跳動與關卡切換，避免出現價格跳回去的錯誤）。
+        若你測試跨過 100、500、1000 等區間時，每一檔顯示的 tick 會依區間規則自動調整。
+      </p>
+
+      <h3 id="faq">6）常見問題（FAQ）</h3>
+      <ul>
+        <li><b>Q：為什麼我調整開倉價格，右側結果沒有立刻變？</b><br/>A：本工具設計為「按下立即計算才更新」，避免你輸入中途結果一直跳動造成誤判。</li>
+        <li><b>Q：顯示更多會怎麼加？</b><br/>A：上方「顯示更多」只增加往上檔位 +10；下方「顯示更多」只增加往下檔位 +10，互不連動。</li>
+        <li><b>Q：試算跟券商對帳單可能不同嗎？</b><br/>A：可能。不同券商折數、最低門檻、進位/捨去規則可能不同；本工具以常見估算方式呈現。</li>
+      </ul>
+
+      <details open style="margin-top:12px">
+        <summary>我該如何使用本計算機？</summary>
+        <p style="margin-top:8px">
+          ① 選商品類型（個股/ETF）與方向（做多/做空） → ② 輸入開倉價格與張數 → ③ 按「立即計算」查看右側上下 5 檔損益
+          → ④ 需要更多檔位時，點表格上/下方的「顯示更多（+10 檔）」。
+        </p>
+      </details>
+    </article>
+
+    <aside class="toc" aria-label="快速導覽">
+      <div class="tocTitle">快速導覽</div>
+      <a href="#guide">教學總覽</a>
+      <a href="#what">當沖成本包含哪些</a>
+      <a href="#fee">手續費與最低門檻</a>
+      <a href="#tax">證交稅與 ETF 差異</a>
+      <a href="#longshort">做多做空差異</a>
+      <a href="#tick">tick 跳動規則</a>
+      <a href="#faq">FAQ</a>
+
+      <div style="margin-top:12px" class="tiny">
+        提醒：本頁內容為一般性資訊整理與試算工具，非投資建議。
+      </div>
+    </aside>
+  </section>
 </main>
 
 <!-- ✅ Footer：三頁連結完整 -->
@@ -428,7 +539,7 @@
   <div class="footerInner">
     <div class="footerLeft">
       <div class="footerBrand">台股當沖計算機</div>
-      <div class="footerMeta">本工具為估算用途，實際費用以券商成交單為準。</div>
+      <div class="footerMeta">本工具僅供試算參考，不構成投資建議；實際費用以券商成交單為準。</div>
     </div>
 
     <nav class="footerLinks" aria-label="頁尾連結">
